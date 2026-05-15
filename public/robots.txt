@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: 
+
+# Sitemaps
+Sitemap: https://tu-retrotube.netlify.app/sitemap.xml
+
+# Crawl delay (ms)
+Crawl-delay: 1
