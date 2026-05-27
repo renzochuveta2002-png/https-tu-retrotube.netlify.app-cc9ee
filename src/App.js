@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function RetroTubeClone() {
+export default function RenzoTube() {
   const [videos, setVideos] = useState([
     {
       id: 1,
@@ -46,6 +46,14 @@ export default function RetroTubeClone() {
   const [warningMessage, setWarningMessage] = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [videoFileUrl, setVideoFileUrl] = useState('');
+  const [activeCommunity, setActiveCommunity] = useState('all');
+  const [communities] = useState([
+    { id: 'all', name: 'Todos', icon: '🌍' },
+    { id: 'tech', name: 'Tecnología', icon: '💻' },
+    { id: 'gaming', name: 'Gaming', icon: '🎮' },
+    { id: 'music', name: 'Música', icon: '🎵' },
+    { id: 'art', name: 'Arte', icon: '🎨' }
+  ]);
 
   const filteredVideos = videos.filter(video =>
     video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,7 +165,7 @@ export default function RetroTubeClone() {
           <div className="bg-pink-300 text-black w-10 h-10 rounded-md flex items-center justify-center font-bold text-lg border-2 border-white">
             R
           </div>
-          <h1 className="text-3xl font-bold tracking-wide text-pink-300 drop-shadow-lg">RetroTube 2005</h1>
+          <h1 className="text-3xl font-bold tracking-wide text-pink-300 drop-shadow-lg">🎥 RenzoTube</h1>
         </div>
 
         <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -358,6 +366,25 @@ export default function RetroTubeClone() {
         </section>
       )}
 
+      {/* COMUNIDADES */}
+      <section className="px-6 py-4 bg-black/40 border-b-2 border-pink-300">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {communities.map((com) => (
+            <button
+              key={com.id}
+              onClick={() => setActiveCommunity(com.id)}
+              className={`whitespace-nowrap px-4 py-2 rounded-full font-bold border-2 transition ${
+                activeCommunity === com.id
+                  ? 'bg-pink-500 border-white text-white'
+                  : 'bg-white/10 border-white/30 text-white hover:border-white'
+              }`}
+            >
+              {com.icon} {com.name}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* MAIN */}
       <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {filteredVideos.length > 0 ? (
@@ -422,8 +449,12 @@ export default function RetroTubeClone() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t-4 border-pink-300 text-center text-pink-200 py-6 mt-10 bg-gradient-to-r from-red-800 via-purple-800 to-pink-700 font-bold">
-        RetroTube Global • Plataforma retro de videos inspirada en el internet clásico 2005
+      <footer className="border-t-4 border-pink-300 text-center text-pink-200 py-6 mt-10 bg-gradient-to-r from-red-800 via-purple-800 to-pink-700 font-bold space-y-2">
+        <div>
+          <p className="text-lg">🎥 RenzoTube - Tu Plataforma de Videos Retro</p>
+          <p className="text-sm text-pink-100">Comunidad de creadores • Videos sin límites • Nostalgia 2005</p>
+        </div>
+        <p className="text-xs text-pink-300">© 2026 RenzoTube. Todos los derechos reservados. | Hecho con ❤️ por Renzo</p>
       </footer>
     </div>
   );
