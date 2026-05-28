@@ -1,19 +1,23 @@
-# 🎥 RenzoTube
+# 🎥 RetroTube 2005
 
 **Tu plataforma retro de videos para compartir y descubrir contenido único**
 
-Una plataforma moderna e inspirada en el internet clásico de 2005, construida por Renzo y para toda la comunidad con React y Tailwind CSS.
+Una plataforma moderna inspirada en el internet clásico de 2005, construida con React y Tailwind CSS. Busca, sube, reproduce y comparte videos directamente desde tu navegador.
 
 ## ✨ Características
 
 - 🎬 Interfaz retro con gradientes y colores vibrantes
 - 🎥 Reproducción de videos integrada (YouTube + Archivos locales)
 - 📤 Subida de videos desde URL o archivos MP4
+- 🔍 Motor de búsqueda potente:
+  - Búsqueda local en tu plataforma
+  - Resultados integrados de YouTube (sin salir de la plataforma)
+  - Resultados integrados de Google (sin salir de la plataforma)
 - 🎵 Sistema de comunidades temáticas
-- 🔍 Búsqueda local y en YouTube/Google
 - 📥 Descarga de videos
-- ⚠️ Filtro automático de contenido sensible
+- 🚫 Filtro automático de contenido sensible
 - 📋 Lista de reproducción tipo YouTube
+- 🛡️ Plataforma libre de anuncios
 - 📱 Diseño completamente responsivo
 
 ## 🚀 Lanzamiento rápido

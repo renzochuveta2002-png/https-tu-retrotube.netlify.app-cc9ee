@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function RenzoTube() {
+export default function RetroTube2005() {
   const [videos, setVideos] = useState([
     {
       id: 1,
@@ -33,6 +33,8 @@ export default function RenzoTube() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchMode, setSearchMode] = useState('local');
   const [newVideo, setNewVideo] = useState({
     title: '',
     channel: '',
@@ -59,6 +61,36 @@ export default function RenzoTube() {
     video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     video.channel.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    if (!term.trim()) {
+      setSearchResults(null);
+      setSearchMode('local');
+      return;
+    }
+    // Búsqueda local siempre activa
+    setSearchMode('local');
+  };
+
+  const handleSearchYouTubeDirect = () => {
+    if (searchTerm.trim()) {
+      setSearchMode('youtube');
+      setSearchResults({ type: 'youtube', query: searchTerm });
+    }
+  };
+
+  const handleSearchGoogleDirect = () => {
+    if (searchTerm.trim()) {
+      setSearchMode('google');
+      setSearchResults({ type: 'google', query: searchTerm });
+    }
+  };
+
+  const handleBackToLocal = () => {
+    setSearchMode('local');
+    setSearchResults(null);
+  };
 
   const extractYouTubeId = (url) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -165,7 +197,7 @@ export default function RenzoTube() {
           <div className="bg-pink-300 text-black w-10 h-10 rounded-md flex items-center justify-center font-bold text-lg border-2 border-white">
             R
           </div>
-          <h1 className="text-3xl font-bold tracking-wide text-pink-300 drop-shadow-lg">🎥 RenzoTube</h1>
+          <h1 className="text-3xl font-bold tracking-wide text-pink-300 drop-shadow-lg">🎥 RetroTube 2005</h1>
         </div>
 
         <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -173,21 +205,33 @@ export default function RenzoTube() {
             type="text"
             placeholder="Buscar videos..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="bg-white text-black border-4 border-pink-300 rounded-md px-5 py-2 flex-1 outline-none shadow-lg focus:ring-2 focus:ring-pink-500"
           />
-          <button
-            onClick={handleSearchYouTube}
-            className="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
-          >
-            YT
-          </button>
-          <button
-            onClick={handleSearchGoogle}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
-          >
-            GG
-          </button>
+          {searchMode === 'local' && (
+            <>
+              <button
+                onClick={handleSearchYouTubeDirect}
+                className="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+              >
+                YT
+              </button>
+              <button
+                onClick={handleSearchGoogleDirect}
+                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+              >
+                GG
+              </button>
+            </>
+          )}
+          {searchMode !== 'local' && (
+            <button
+              onClick={handleBackToLocal}
+              className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+            >
+              ← Atrás
+            </button>
+          )}
         </div>
 
         <button 
@@ -300,6 +344,72 @@ export default function RenzoTube() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* SECCIÓN DE BÚSQUEDA - YOUTUBE */}
+      {searchMode === 'youtube' && searchResults && (
+        <section className="px-6 py-6 bg-black/40 border-b-4 border-red-400">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-red-400">🎬 Resultados de YouTube: "{searchResults.query}"</h2>
+            <button
+              onClick={handleBackToLocal}
+              className="bg-gray-600 text-white px-4 py-2 rounded font-bold border-2 border-white"
+            >
+              ← Volver
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-black rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-300">
+                <div className="h-40 bg-red-900 flex items-center justify-center">
+                  <p className="text-red-200 text-sm">Resultado {i} de YouTube</p>
+                </div>
+                <div className="p-3">
+                  <p className="text-white font-bold text-sm truncate">Video "{searchResults.query}" #{i}</p>
+                  <p className="text-red-300 text-xs mt-1">Canal YouTube • 10K vistas</p>
+                  <button
+                    onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchResults.query)}`, '_blank')}
+                    className="w-full mt-2 bg-red-600 hover:bg-red-500 text-white py-1 rounded text-xs font-bold border border-white"
+                  >
+                    Ver en YouTube
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-pink-200 text-sm mt-4 text-center">💡 Haz clic en "Ver en YouTube" para abrir el resultado en una nueva pestaña</p>
+        </section>
+      )}
+
+      {/* SECCIÓN DE BÚSQUEDA - GOOGLE */}
+      {searchMode === 'google' && searchResults && (
+        <section className="px-6 py-6 bg-black/40 border-b-4 border-blue-400">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-blue-400">🔍 Resultados de Google: "{searchResults.query}"</h2>
+            <button
+              onClick={handleBackToLocal}
+              className="bg-gray-600 text-white px-4 py-2 rounded font-bold border-2 border-white"
+            >
+              ← Volver
+            </button>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-blue-900/40 rounded-lg p-4 border-l-4 border-blue-400 hover:bg-blue-900/60">
+                <p className="text-blue-300 font-bold text-sm">Resultado {i}: {searchResults.query}</p>
+                <p className="text-gray-300 text-xs mt-1">google.com › search › resultado{i}</p>
+                <p className="text-white text-sm mt-2">Descripción breve del resultado {i} sobre "{searchResults.query}"...</p>
+                <button
+                  onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(searchResults.query)}`, '_blank')}
+                  className="mt-2 text-blue-400 hover:text-blue-300 text-xs font-bold underline"
+                >
+                  Ir a Google →
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="text-pink-200 text-sm mt-4 text-center">💡 Haz clic en "Ir a Google" para ver todos los resultados</p>
+        </section>
       )}
 
       {selectedVideo && (
@@ -451,10 +561,10 @@ export default function RenzoTube() {
       {/* FOOTER */}
       <footer className="border-t-4 border-pink-300 text-center text-pink-200 py-6 mt-10 bg-gradient-to-r from-red-800 via-purple-800 to-pink-700 font-bold space-y-2">
         <div>
-          <p className="text-lg">🎥 RenzoTube - Tu Plataforma de Videos Retro</p>
+          <p className="text-lg">🎥 RetroTube 2005 - Tu Plataforma de Videos Retro</p>
           <p className="text-sm text-pink-100">Comunidad de creadores • Videos sin límites • Nostalgia 2005</p>
         </div>
-        <p className="text-xs text-pink-300">© 2026 RenzoTube. Todos los derechos reservados. | Hecho con ❤️ por Renzo</p>
+        <p className="text-xs text-pink-300">© 2026 RetroTube 2005. Todos los derechos reservados. | Plataforma libre de anuncios</p>
       </footer>
     </div>
   );
