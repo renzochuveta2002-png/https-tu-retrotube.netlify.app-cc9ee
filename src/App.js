@@ -69,7 +69,6 @@ export default function RetroTube2005() {
       setSearchMode('local');
       return;
     }
-    // Búsqueda local siempre activa
     setSearchMode('local');
   };
 
@@ -177,18 +176,6 @@ export default function RetroTube2005() {
     link.click();
   };
 
-  const handleSearchYouTube = () => {
-    if (searchTerm.trim()) {
-      window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchTerm)}`, '_blank');
-    }
-  };
-
-  const handleSearchGoogle = () => {
-    if (searchTerm.trim()) {
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchTerm + ' video')}`, '_blank');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-800 to-red-700 text-white font-mono">
       {/* HEADER */}
@@ -212,13 +199,15 @@ export default function RetroTube2005() {
             <>
               <button
                 onClick={handleSearchYouTubeDirect}
-                className="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+                className="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm transition"
+                title="Buscar en YouTube"
               >
                 YT
               </button>
               <button
                 onClick={handleSearchGoogleDirect}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm transition"
+                title="Buscar en Google"
               >
                 GG
               </button>
@@ -227,7 +216,8 @@ export default function RetroTube2005() {
           {searchMode !== 'local' && (
             <button
               onClick={handleBackToLocal}
-              className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm"
+              className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-md font-bold border-2 border-white shadow-lg text-sm transition"
+              title="Volver a búsqueda local"
             >
               ← Atrás
             </button>
@@ -297,13 +287,13 @@ export default function RetroTube2005() {
             <div className="flex gap-2 mt-6">
               <button
                 onClick={handleAddVideo}
-                className="flex-1 bg-pink-400 hover:bg-pink-300 text-black py-2 rounded font-bold border-2 border-white"
+                className="flex-1 bg-pink-400 hover:bg-pink-300 text-black py-2 rounded font-bold border-2 border-white transition"
               >
                 Agregar Video
               </button>
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white"
+                className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white transition"
               >
                 Cancelar
               </button>
@@ -331,13 +321,13 @@ export default function RetroTube2005() {
                   setNewVideo({ title: '', channel: '', image: '', video: '', duration: '', source: '' });
                   setShowModal(false);
                 }}
-                className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded font-bold border-2 border-white"
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded font-bold border-2 border-white transition"
               >
                 Continuar
               </button>
               <button
                 onClick={() => setShowWarning(false)}
-                className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white"
+                className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white transition"
               >
                 Cancelar
               </button>
@@ -353,14 +343,14 @@ export default function RetroTube2005() {
             <h2 className="text-2xl font-bold text-red-400">🎬 Resultados de YouTube: "{searchResults.query}"</h2>
             <button
               onClick={handleBackToLocal}
-              className="bg-gray-600 text-white px-4 py-2 rounded font-bold border-2 border-white"
+              className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold border-2 border-white transition"
             >
               ← Volver
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-black rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-300">
+              <div key={i} className="bg-black rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-300 hover:scale-105 transition">
                 <div className="h-40 bg-red-900 flex items-center justify-center">
                   <p className="text-red-200 text-sm">Resultado {i} de YouTube</p>
                 </div>
@@ -369,7 +359,7 @@ export default function RetroTube2005() {
                   <p className="text-red-300 text-xs mt-1">Canal YouTube • 10K vistas</p>
                   <button
                     onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchResults.query)}`, '_blank')}
-                    className="w-full mt-2 bg-red-600 hover:bg-red-500 text-white py-1 rounded text-xs font-bold border border-white"
+                    className="w-full mt-2 bg-red-600 hover:bg-red-500 text-white py-1 rounded text-xs font-bold border border-white transition"
                   >
                     Ver en YouTube
                   </button>
@@ -388,20 +378,20 @@ export default function RetroTube2005() {
             <h2 className="text-2xl font-bold text-blue-400">🔍 Resultados de Google: "{searchResults.query}"</h2>
             <button
               onClick={handleBackToLocal}
-              className="bg-gray-600 text-white px-4 py-2 rounded font-bold border-2 border-white"
+              className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold border-2 border-white transition"
             >
               ← Volver
             </button>
           </div>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-blue-900/40 rounded-lg p-4 border-l-4 border-blue-400 hover:bg-blue-900/60">
+              <div key={i} className="bg-blue-900/40 rounded-lg p-4 border-l-4 border-blue-400 hover:bg-blue-900/60 transition">
                 <p className="text-blue-300 font-bold text-sm">Resultado {i}: {searchResults.query}</p>
                 <p className="text-gray-300 text-xs mt-1">google.com › search › resultado{i}</p>
                 <p className="text-white text-sm mt-2">Descripción breve del resultado {i} sobre "{searchResults.query}"...</p>
                 <button
                   onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(searchResults.query)}`, '_blank')}
-                  className="mt-2 text-blue-400 hover:text-blue-300 text-xs font-bold underline"
+                  className="mt-2 text-blue-400 hover:text-blue-300 text-xs font-bold underline transition"
                 >
                   Ir a Google →
                 </button>
@@ -423,7 +413,7 @@ export default function RetroTube2005() {
               </div>
               <button
                 onClick={() => setSelectedVideo(null)}
-                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-bold border-2 border-white"
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-bold border-2 border-white transition"
               >
                 Cerrar
               </button>
