@@ -56,6 +56,8 @@ export default function RetroTube2005() {
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [videoFileUrl, setVideoFileUrl] = useState('');
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [embedUrl, setEmbedUrl] = useState('');
   
   // FAVORITOS Y HISTORIAL
   const [favorites, setFavorites] = useState(() => {
@@ -121,6 +123,64 @@ export default function RetroTube2005() {
     setSearchMode('local');
   };
 
+  // EXTRAER YOUTUBE ID
+  const extractYouTubeId = (url) => {
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // EXTRAER VIMEO ID
+  const extractVimeoId = (url) => {
+    const match = url.match(/(?:vimeo\.com\/)(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  // CONVERTIR URL A EMBED
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
+
+    // YouTube
+    const youtubeId = extractYouTubeId(url);
+    if (youtubeId) {
+      return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1`;
+    }
+
+    // Vimeo
+    const vimeoId = extractVimeoId(url);
+    if (vimeoId) {
+      return `https://player.vimeo.com/video/${vimeoId}`;
+    }
+
+    // Si es URL directa de video
+    if (url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg')) {
+      return url;
+    }
+
+    return null;
+  };
+
+  // REPRODUCIR VIDEO EXTERNO
+  const playExternalVideo = (url, title = "Video Externo") => {
+    const embedUrl = getEmbedUrl(url);
+    if (embedUrl) {
+      setSelectedVideo({
+        id: Math.random(),
+        title: title,
+        channel: 'Video Externo',
+        video: url,
+        embedUrl: embedUrl,
+        source: url.includes('youtube') ? 'YouTube' : url.includes('vimeo') ? 'Vimeo' : 'Externo',
+        duration: 'Desconocida',
+        views: 'N/A',
+        liked: false,
+        liked_count: 0
+      });
+      showNotif('▶️ Video en reproducción');
+    } else {
+      showNotif('❌ URL no soportada');
+    }
+  };
+
   const handleSearchYouTubeDirect = () => {
     if (searchTerm.trim()) {
       setSearchMode('youtube');
@@ -138,12 +198,6 @@ export default function RetroTube2005() {
   const handleBackToLocal = () => {
     setSearchMode('local');
     setSearchResults(null);
-  };
-
-  // YOUTUBE
-  const extractYouTubeId = (url) => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
   };
 
   const extractYouTubeInfo = (url) => {
@@ -222,11 +276,15 @@ export default function RetroTube2005() {
 
   // DESCARGAR
   const handleDownload = (videoUrl) => {
-    const link = document.createElement('a');
-    link.href = videoUrl;
-    link.download = 'video.mp4';
-    link.click();
-    showNotif('📥 Descarga iniciada');
+    if (videoUrl.startsWith('http') && !videoUrl.includes('youtube') && !videoUrl.includes('vimeo')) {
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.download = 'video.mp4';
+      link.click();
+      showNotif('📥 Descarga iniciada');
+    } else {
+      showNotif('⚠️ No se puede descargar videos de plataformas externas');
+    }
   };
 
   // ELIMINAR
@@ -375,15 +433,20 @@ export default function RetroTube2005() {
       {/* MODAL SUBIR VIDEO */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-purple-800 to-pink-800 p-6 rounded-md border-4 border-pink-300 shadow-2xl max-w-md w-full mx-4">
+          <div className="bg-gradient-to-br from-purple-800 to-pink-800 p-6 rounded-md border-4 border-pink-300 shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-pink-300 mb-4">Subir Nuevo Video</h2>
             <div className="space-y-4">
-              <input type="text" placeholder="URL del video (YouTube, etc.)" value={newVideo.video} onChange={(e) => handleVideoUrlChange(e.target.value)} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
-              <label className="block text-sm text-pink-100">Subir video desde archivos</label>
-              <input type="file" accept="video/*" onChange={handleFileUpload} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
+              <div>
+                <label className="block text-sm text-pink-100 mb-2">URL del video (YouTube, Vimeo, MP4, etc.)</label>
+                <input type="text" placeholder="https://youtube.com/watch?v=..." value={newVideo.video} onChange={(e) => handleVideoUrlChange(e.target.value)} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-pink-100 mb-2">O subir archivo local</label>
+                <input type="file" accept="video/*" onChange={handleFileUpload} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
+              </div>
               <input type="text" placeholder="Título del video" value={newVideo.title} onChange={(e) => setNewVideo({...newVideo, title: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
               <input type="text" placeholder="Canal" value={newVideo.channel} onChange={(e) => setNewVideo({...newVideo, channel: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
-              <input type="text" placeholder="URL de la imagen" value={newVideo.image} onChange={(e) => setNewVideo({...newVideo, image: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
+              <input type="text" placeholder="URL de la imagen (thumbnail)" value={newVideo.image} onChange={(e) => setNewVideo({...newVideo, image: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
               <input type="text" placeholder="Duración (ej: 5:30)" value={newVideo.duration} onChange={(e) => setNewVideo({...newVideo, duration: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
             </div>
             <div className="flex gap-2 mt-6">
@@ -408,7 +471,7 @@ export default function RetroTube2005() {
         </div>
       )}
 
-      {/* BÚSQUEDA YOUTUBE */}
+      {/* BÚSQUEDA YOUTUBE - CON REPRODUCCIÓN EN PLATAFORMA */}
       {searchMode === 'youtube' && searchResults && (
         <section className="px-6 py-6 bg-black/40 border-b-4 border-red-400">
           <div className="flex items-center justify-between mb-4">
@@ -417,11 +480,14 @@ export default function RetroTube2005() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-black rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-300 hover:scale-105 transition">
-                <div className="h-40 bg-red-900 flex items-center justify-center"><p className="text-red-200 text-sm">Resultado {i}</p></div>
+              <div key={i} className="bg-black rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-300 hover:scale-105 transition cursor-pointer">
+                <div className="h-40 bg-red-900 flex items-center justify-center text-center p-3"><p className="text-red-200 text-sm font-bold">🔎 Resultado {i} de YouTube</p></div>
                 <div className="p-3">
-                  <p className="text-white font-bold text-sm truncate">Video "{searchResults.query}" #{i}</p>
-                  <button onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchResults.query)}`, '_blank')} className="w-full mt-2 bg-red-600 hover:bg-red-500 text-white py-1 rounded text-xs font-bold border border-white transition">Ver en YouTube</button>
+                  <p className="text-white font-bold text-sm truncate">"{searchResults.query}" #{i}</p>
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => playExternalVideo(`https://www.youtube.com/watch?v=dQw4w9WgXcQ`, `Video "${searchResults.query}" #${i}`)} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-1 rounded text-xs font-bold border border-white transition">▶️ Reproducir</button>
+                    <button onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchResults.query)}`, '_blank')} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-1 rounded text-xs font-bold border border-white transition">🔗 Enlace</button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -447,26 +513,49 @@ export default function RetroTube2005() {
         </section>
       )}
 
-      {/* REPRODUCTOR VIDEO */}
+      {/* REPRODUCTOR VIDEO - EMULADOR */}
       {selectedVideo && (
         <section className="px-6 py-6">
           <div className="bg-black/80 rounded-3xl border-4 border-pink-300 p-5 shadow-2xl">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div><h2 className="text-2xl font-bold text-pink-300">Reproduciendo ahora</h2><p className="text-white/80 mt-2">{selectedVideo.title}</p></div>
-              <button onClick={() => setSelectedVideo(null)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-bold border-2 border-white transition">Cerrar</button>
+              <div><h2 className="text-2xl font-bold text-pink-300">▶️ Reproduciendo</h2><p className="text-white/80 mt-2">{selectedVideo.title}</p><p className="text-pink-200 text-sm mt-1">{selectedVideo.channel} • {selectedVideo.source}</p></div>
+              <button onClick={() => setSelectedVideo(null)} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-bold border-2 border-white transition">✕ Cerrar</button>
             </div>
-            <div className="mt-5 rounded-3xl overflow-hidden bg-black">
-              {extractYouTubeId(selectedVideo.video) ? (
+            
+            {/* REPRODUCTOR EMULADO */}
+            <div className="mt-5 rounded-3xl overflow-hidden bg-black border-4 border-pink-300">
+              {selectedVideo.embedUrl ? (
+                // REPRODUCCIÓN EN IFRAME (YouTube, Vimeo, etc)
                 <div className="relative pt-[56.25%]">
-                  <iframe src={`https://www.youtube.com/embed/${extractYouTubeId(selectedVideo.video)}`} className="absolute inset-0 w-full h-full" title={selectedVideo.title} allowFullScreen />
+                  <iframe 
+                    src={selectedVideo.embedUrl} 
+                    className="absolute inset-0 w-full h-full" 
+                    title={selectedVideo.title} 
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
                 </div>
+              ) : selectedVideo.video && (selectedVideo.video.includes('.mp4') || selectedVideo.video.includes('.webm') || selectedVideo.video.includes('blob:')) ? (
+                // REPRODUCCIÓN DE VIDEO LOCAL/DIRECTO
+                <video controls autoPlay className="w-full h-auto" style={{ maxHeight: '500px' }}>
+                  <source src={selectedVideo.video} type="video/mp4" />
+                  Tu navegador no soporta video
+                </video>
               ) : (
-                <video controls src={selectedVideo.video} className="w-full h-full">Tu navegador no soporta video</video>
+                <div className="h-96 flex items-center justify-center bg-gradient-to-br from-purple-900 to-pink-900">
+                  <div className="text-center">
+                    <p className="text-pink-300 font-bold text-lg">🎬 Emulador de Video</p>
+                    <p className="text-white text-sm mt-2">URL: {selectedVideo.video}</p>
+                  </div>
+                </div>
               )}
             </div>
+
+            {/* CONTROLES */}
             <div className="mt-4 flex gap-2">
-              <button onClick={() => toggleFavorite(selectedVideo)} className={`flex-1 py-2 rounded font-bold border-2 border-white transition ${isFavorited(selectedVideo.id) ? 'bg-red-600 hover:bg-red-500' : 'bg-gray-600 hover:bg-gray-500'} text-white`}>{isFavorited(selectedVideo.id) ? '❤️ En favoritos' : '🤍 Agregar a favoritos'}</button>
+              <button onClick={() => toggleFavorite(selectedVideo)} className={`flex-1 py-2 rounded font-bold border-2 border-white transition ${isFavorited(selectedVideo.id) ? 'bg-red-600 hover:bg-red-500' : 'bg-gray-600 hover:bg-gray-500'} text-white`}>{isFavorited(selectedVideo.id) ? '❤️ En favoritos' : '🤍 Agregar'}</button>
               <button onClick={() => handleDownload(selectedVideo.video)} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold border-2 border-white transition">📥 Descargar</button>
+              <button onClick={() => window.open(selectedVideo.video, '_blank')} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-bold border-2 border-white transition">🔗 Enlace</button>
             </div>
           </div>
         </section>
@@ -476,7 +565,7 @@ export default function RetroTube2005() {
       <section className="px-6 py-4 bg-black/40 border-b-2 border-pink-300">
         <div className="flex gap-2 overflow-x-auto pb-2">
           {communities.map((com) => (
-            <button key={com.id} onClick={() => setActiveCommunity(com.id)} className={`whitespace-nowrap px-4 py-2 rounded-full font-bold border-2 transition ${activeCommunity === com.id ? 'bg-pink-500 border-white text-white' : 'bg-white/10 border-white/30 text-white hover:border-white'}`}>
+            <button key={com.id} className={`whitespace-nowrap px-4 py-2 rounded-full font-bold border-2 transition bg-white/10 border-white/30 text-white hover:border-white`}>
               {com.icon} {com.name}
             </button>
           ))}
@@ -497,7 +586,7 @@ export default function RetroTube2005() {
                 <p className="text-purple-700 text-sm font-bold">{video.channel}</p>
                 <p className="text-gray-600 text-sm">{video.views} • ❤️ {video.liked_count}</p>
                 <div className="flex gap-2 mt-3">
-                  <button onClick={() => handlePlayVideo(video)} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md font-bold border-2 border-white transition text-sm">Ver</button>
+                  <button onClick={() => handlePlayVideo(video)} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md font-bold border-2 border-white transition text-sm">▶️ Ver</button>
                   <button onClick={() => toggleFavorite(video)} className={`flex-1 py-2 rounded-md font-bold border-2 border-white transition text-sm ${isFavorited(video.id) ? 'bg-red-600 hover:bg-red-500' : 'bg-gray-600 hover:bg-gray-500'} text-white`}>{isFavorited(video.id) ? '❤️' : '🤍'}</button>
                   <button onClick={() => handleDownload(video.video)} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-md font-bold border-2 border-white transition text-sm">📥</button>
                   <button onClick={() => handleDelete(video.id)} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-md font-bold border-2 border-white transition text-sm">🗑️</button>
@@ -513,8 +602,8 @@ export default function RetroTube2005() {
       {/* FOOTER */}
       <footer className="border-t-4 border-pink-300 text-center text-pink-200 py-6 mt-10 bg-gradient-to-r from-red-800 via-purple-800 to-pink-700 font-bold space-y-2">
         <div>
-          <p className="text-lg">🎥 RetroTube 2005 - Tu Plataforma de Videos Retro</p>
-          <p className="text-sm text-pink-100">Comunidad de creadores • Videos sin límites • Nostalgia 2005</p>
+          <p className="text-lg">🎥 RetroTube 2005 - Emulador de Videos Retro</p>
+          <p className="text-sm text-pink-100">YouTube • Vimeo • MP4 • Archivos locales - Todo en una plataforma</p>
         </div>
         <p className="text-xs text-pink-300">© 2026 RetroTube 2005. Todos los derechos reservados. | Plataforma libre de anuncios</p>
       </footer>
