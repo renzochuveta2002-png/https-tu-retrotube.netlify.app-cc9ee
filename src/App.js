@@ -1,42 +1,50 @@
 import { useState, useEffect } from 'react';
 
 export default function RetroTube2005() {
-  // VIDEOS
-  const [videos, setVideos] = useState([
-    {
-      id: 1,
-      title: "Cyber Café Perú 2005",
-      channel: "RetroNet",
-      views: "12,000 vistas",
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
-      duration: "5:30",
-      liked: false,
-      liked_count: 234
-    },
-    {
-      id: 2,
-      title: "Motorola Java Portal",
-      channel: "J2ME Perú",
-      views: "8,400 vistas",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
-      duration: "3:45",
-      liked: false,
-      liked_count: 156
-    },
-    {
-      id: 3,
-      title: "Internet Cabina 2005",
-      channel: "CabinaNet",
-      views: "15,700 vistas",
-      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
-      video: "https://www.w3schools.com/html/mov_bbb.mp4",
-      duration: "7:20",
-      liked: false,
-      liked_count: 445
-    }
-  ]);
+  // VIDEOS - CON PERSISTENCIA EN LOCALSTORAGE
+  const [videos, setVideos] = useState(() => {
+    const saved = localStorage.getItem('retrotube_videos');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        title: "Cyber Café Perú 2005",
+        channel: "RetroNet",
+        views: "12,000 vistas",
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop",
+        video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        duration: "5:30",
+        liked: false,
+        liked_count: 234
+      },
+      {
+        id: 2,
+        title: "Motorola Java Portal",
+        channel: "J2ME Perú",
+        views: "8,400 vistas",
+        image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
+        video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        duration: "3:45",
+        liked: false,
+        liked_count: 156
+      },
+      {
+        id: 3,
+        title: "Internet Cabina 2005",
+        channel: "CabinaNet",
+        views: "15,700 vistas",
+        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
+        video: "https://www.w3schools.com/html/mov_bbb.mp4",
+        duration: "7:20",
+        liked: false,
+        liked_count: 445
+      }
+    ];
+  });
+
+  // GUARDAR VIDEOS EN LOCALSTORAGE CUANDO CAMBIEN
+  useEffect(() => {
+    localStorage.setItem('retrotube_videos', JSON.stringify(videos));
+  }, [videos]);
 
   // ESTADOS PRINCIPALES
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,15 +57,20 @@ export default function RetroTube2005() {
   const [warningMessage, setWarningMessage] = useState('');
   const [videoFileUrl, setVideoFileUrl] = useState('');
   
-  // NUEVAS FUNCIONES ESENCIALES
-  const [favorites, setFavorites] = useState([]);
-  const [watchHistory, setWatchHistory] = useState([]);
+  // FAVORITOS Y HISTORIAL
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('retrotube_favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [watchHistory, setWatchHistory] = useState(() => {
+    const saved = localStorage.getItem('retrotube_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [showFavorites, setShowFavorites] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showNotification, setShowNotification] = useState('');
-  const [userPlaylists, setUserPlaylists] = useState([
-    { id: 1, name: 'Mi Playlist', videos: [] }
-  ]);
 
   const [newVideo, setNewVideo] = useState({
     title: '',
@@ -76,22 +89,14 @@ export default function RetroTube2005() {
     { id: 'art', name: 'Arte', icon: '🎨' }
   ]);
 
-  // CARGAR FAVORITOS Y HISTORIAL DEL LOCAL STORAGE
+  // GUARDAR FAVORITOS
   useEffect(() => {
-    const savedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    const savedHistory = JSON.parse(localStorage.getItem('watchHistory')) || [];
-    setFavorites(savedFavorites);
-    setWatchHistory(savedHistory);
-  }, []);
-
-  // GUARDAR FAVORITOS EN LOCAL STORAGE
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
+    localStorage.setItem('retrotube_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // GUARDAR HISTORIAL EN LOCAL STORAGE
+  // GUARDAR HISTORIAL
   useEffect(() => {
-    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    localStorage.setItem('retrotube_history', JSON.stringify(watchHistory));
   }, [watchHistory]);
 
   // NOTIFICACIONES TEMPORALES
@@ -200,7 +205,7 @@ export default function RetroTube2005() {
         return;
       }
       const video = {
-        id: videos.length + 1,
+        id: Math.max(...videos.map(v => v.id), 0) + 1,
         ...newVideo,
         views: "0 vistas",
         image: newVideo.image || 'https://via.placeholder.com/720x405?text=Video+Archivo',
@@ -227,10 +232,11 @@ export default function RetroTube2005() {
   // ELIMINAR
   const handleDelete = (id) => {
     setVideos(videos.filter(v => v.id !== id));
+    setFavorites(favorites.filter(f => f.id !== id));
     showNotif('🗑️ Video eliminado');
   };
 
-  // FAVORITOS - NUEVA FUNCIÓN ESENCIAL
+  // FAVORITOS
   const toggleFavorite = (video) => {
     const isFavorited = favorites.some(fav => fav.id === video.id);
     
@@ -242,7 +248,6 @@ export default function RetroTube2005() {
       showNotif('⭐ Agregado a favoritos');
     }
 
-    // Actualizar like count
     const updatedVideos = videos.map(v => {
       if (v.id === video.id) {
         return {
@@ -258,16 +263,15 @@ export default function RetroTube2005() {
 
   const isFavorited = (videoId) => favorites.some(fav => fav.id === videoId);
 
-  // HISTORIAL DE REPRODUCCIÓN - NUEVA FUNCIÓN ESENCIAL
+  // HISTORIAL
   const handlePlayVideo = (video) => {
     setSelectedVideo(video);
-    
     const existingHistory = watchHistory.filter(h => h.id !== video.id);
     const newHistory = [{ ...video, watchedAt: new Date().toISOString() }, ...existingHistory].slice(0, 20);
     setWatchHistory(newHistory);
   };
 
-  // RENDERIZAR VIDEOS FAVORITOS
+  // RENDERIZAR FAVORITOS
   const renderFavorites = () => {
     if (favorites.length === 0) {
       return <p className="text-center text-pink-300 py-10">No tienes favoritos aún</p>;
@@ -302,10 +306,10 @@ export default function RetroTube2005() {
     return (
       <div className="p-6 space-y-3">
         {watchHistory.map((video) => (
-          <div key={video.id} className="bg-gray-800 p-4 rounded-lg border-l-4 border-pink-400 hover:bg-gray-700 transition cursor-pointer" onClick={() => handlePlayVideo(video)}>
+          <div key={`${video.id}-${video.watchedAt}`} className="bg-gray-800 p-4 rounded-lg border-l-4 border-pink-400 hover:bg-gray-700 transition cursor-pointer" onClick={() => handlePlayVideo(video)}>
             <h3 className="text-white font-bold">{video.title}</h3>
             <p className="text-pink-200 text-sm">{video.channel}</p>
-            <p className="text-gray-400 text-xs mt-1">Visto hace {new Date(video.watchedAt).toLocaleTimeString()}</p>
+            <p className="text-gray-400 text-xs mt-1">📅 {new Date(video.watchedAt).toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -340,8 +344,8 @@ export default function RetroTube2005() {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={() => setShowFavorites(!showFavorites)} className="bg-red-500 hover:bg-red-400 text-white px-3 py-2 rounded-md font-bold border-2 border-white transition" title="Favoritos">⭐</button>
-          <button onClick={() => setShowHistory(!showHistory)} className="bg-purple-500 hover:bg-purple-400 text-white px-3 py-2 rounded-md font-bold border-2 border-white transition" title="Historial">📺</button>
+          <button onClick={() => setShowFavorites(!showFavorites)} className="bg-red-500 hover:bg-red-400 text-white px-3 py-2 rounded-md font-bold border-2 border-white transition" title="Favoritos">⭐ {favorites.length}</button>
+          <button onClick={() => setShowHistory(!showHistory)} className="bg-purple-500 hover:bg-purple-400 text-white px-3 py-2 rounded-md font-bold border-2 border-white transition" title="Historial">📺 {watchHistory.length}</button>
           <button onClick={() => setShowModal(true)} className="bg-pink-400 hover:bg-pink-300 text-black transition px-5 py-2 rounded-md font-bold border-2 border-white shadow-lg">Subir</button>
         </div>
       </header>
@@ -351,7 +355,7 @@ export default function RetroTube2005() {
         <section className="bg-gradient-to-r from-red-900 to-pink-900 border-b-4 border-pink-300 p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl font-bold text-pink-300">⭐ MIS FAVORITOS ({favorites.length})</h2>
-            <button onClick={() => setShowFavorites(false)} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold">Cerrar</button>
+            <button onClick={() => setShowFavorites(false)} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold">Cerrar ✕</button>
           </div>
           {renderFavorites()}
         </section>
@@ -361,8 +365,8 @@ export default function RetroTube2005() {
       {showHistory && (
         <section className="bg-gradient-to-r from-purple-900 to-blue-900 border-b-4 border-blue-300 p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold text-blue-300">📺 HISTORIAL DE REPRODUCCIÓN ({watchHistory.length})</h2>
-            <button onClick={() => setShowHistory(false)} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold">Cerrar</button>
+            <h2 className="text-3xl font-bold text-blue-300">📺 HISTORIAL ({watchHistory.length})</h2>
+            <button onClick={() => setShowHistory(false)} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded font-bold">Cerrar ✕</button>
           </div>
           {renderHistory()}
         </section>
@@ -383,8 +387,8 @@ export default function RetroTube2005() {
               <input type="text" placeholder="Duración (ej: 5:30)" value={newVideo.duration} onChange={(e) => setNewVideo({...newVideo, duration: e.target.value})} className="w-full bg-white text-black border-2 border-pink-300 rounded px-3 py-2" />
             </div>
             <div className="flex gap-2 mt-6">
-              <button onClick={handleAddVideo} className="flex-1 bg-pink-400 hover:bg-pink-300 text-black py-2 rounded font-bold border-2 border-white transition">Agregar</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white transition">Cancelar</button>
+              <button onClick={handleAddVideo} className="flex-1 bg-pink-400 hover:bg-pink-300 text-black py-2 rounded font-bold border-2 border-white transition">✅ Agregar</button>
+              <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white transition">❌ Cancelar</button>
             </div>
           </div>
         </div>
@@ -397,7 +401,7 @@ export default function RetroTube2005() {
             <h2 className="text-2xl font-bold text-red-300 mb-4">⚠️ Advertencia</h2>
             <p className="text-white mb-6">{warningMessage}</p>
             <div className="flex gap-2">
-              <button onClick={() => { setShowWarning(false); const video = { id: videos.length + 1, ...newVideo, views: "0 vistas" }; setVideos([...videos, video]); setNewVideo({ title: '', channel: '', image: '', video: '', duration: '', source: '' }); setShowModal(false); }} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded font-bold border-2 border-white transition">Continuar</button>
+              <button onClick={() => { setShowWarning(false); const video = { id: Math.max(...videos.map(v => v.id), 0) + 1, ...newVideo, views: "0 vistas" }; setVideos([...videos, video]); setNewVideo({ title: '', channel: '', image: '', video: '', duration: '', source: '' }); setShowModal(false); }} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded font-bold border-2 border-white transition">Continuar</button>
               <button onClick={() => setShowWarning(false)} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded font-bold border-2 border-white transition">Cancelar</button>
             </div>
           </div>
